@@ -638,6 +638,8 @@
 
   /* ---------- Background music: one 8-bar loop, gapless via WebAudio (HTML audio as fallback) ---------- */
   const MUSIC_VOL = 0.35;
+  // iOS: let WebAudio play even when the ringer switch is on silent
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
   const getAC = () => {
     if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
     return ac;
@@ -658,11 +660,16 @@
     if (muted) return;
     musicWant = true;
     const c = getAC();
-    if (c && c.state === 'suspended') c.resume();
+    if (c && c.state !== 'running') { try { c.resume(); } catch {} }
     if (musicSrc) return;
+    // start the HTML audio element inside the tap itself as a safety net (iOS needs a direct gesture)
+    const useFallback = () => { if (musicSrc || !musicWant || muted) return; const p = fallback.play(); if (p && p.catch) p.catch(() => {}); };
+    const stuck = setTimeout(() => { if (!c || c.state !== 'running') useFallback(); }, 600);
     loadMusic().then((buf) => {
+      clearTimeout(stuck);
       if (!musicWant || muted || musicSrc) return;
-      if (!buf) { const p = fallback.play(); if (p && p.catch) p.catch(() => {}); return; }
+      if (!buf || c.state !== 'running') { useFallback(); return; }
+      fallback.pause();
       const src = c.createBufferSource(), g = c.createGain();
       src.buffer = buf; src.loop = true;
       g.gain.setValueAtTime(0, c.currentTime); g.gain.linearRampToValueAtTime(MUSIC_VOL, c.currentTime + 0.04);
