@@ -2,7 +2,7 @@
 
 A mobile-first Halloween game. Smash pumpkins, dodge black cats, climb the high score table.
 
-Static site: `index.html` plus `music.mp3`. No build step.
+Static site: `index.html` plus `music.mp3`. No build step. One Pages Function (`functions/api/smashes.js`) powers the global smash counter.
 
 ## Deploy (Cloudflare Pages)
 
@@ -10,6 +10,18 @@ Static site: `index.html` plus `music.mp3`. No build step.
 - Build command: leave empty
 - Build output directory: `/`
 - Custom domain: pumpkinsmash.me
+
+## Global smash counter
+
+The home screen shows the total pumpkins smashed by all players across all games. Each game reports its smashes (regular and golden pumpkins count 1 each) to `/api/smashes` at game over, or when the tab is closed mid-game. Unsent counts are queued in localStorage and retried on the next visit.
+
+One-time setup in Cloudflare:
+
+1. Workers & Pages → D1 → Create database (e.g. `pumpkinsmash`).
+2. Pages project → Settings → Bindings → Add → D1 database: variable name `DB`, select that database (Production, and Preview if wanted).
+3. Redeploy. The table is created automatically on first request.
+
+Until the binding exists the API returns 503 and the counter stays hidden.
 
 ## Config
 

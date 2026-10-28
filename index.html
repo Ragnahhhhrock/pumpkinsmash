@@ -209,6 +209,23 @@
   }
   .tagline { margin: 0; color: var(--muted); font-size: 1.05rem; }
 
+  .global {
+    display: grid; justify-items: center; gap: 2px; width: min(100%, 380px); padding: 12px 16px 14px;
+    background: linear-gradient(180deg, rgba(255, 122, 26, .16), rgba(22, 11, 40, .86) 70%);
+    border: 1px solid rgba(255, 122, 26, .55); border-radius: var(--radius);
+    box-shadow: 0 0 28px rgba(255, 122, 26, .22), inset 0 1px 0 rgba(255, 255, 255, .06);
+  }
+  .global-face { font-size: 1.5rem; line-height: 1; }
+  .global-num {
+    font-family: var(--font-display); font-size: clamp(2.6rem, 13vw, 3.6rem); line-height: 1; letter-spacing: .04em;
+    color: var(--gold); font-variant-numeric: tabular-nums;
+    text-shadow: 0 3px 0 #7a2b00, 0 0 22px rgba(255, 213, 74, .55);
+  }
+  .global-label { font-size: .95rem; font-weight: 600; color: var(--ember); }
+  .global.bump .global-num { animation: bump .5s ease-out; }
+  @keyframes bump { 30% { scale: 1.12; } }
+  @media (prefers-reduced-motion: reduce) { .global.bump .global-num { animation: none; } }
+
   .crew { list-style: none; margin: 4px 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(74px, 1fr)); gap: 8px; }
   .chip {
     display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px 8px; min-width: 0;
@@ -445,6 +462,12 @@
       <h1 class="title">Pumpkin Smash</h1>
       <p class="tagline">Smash the pumpkins before they hide.</p>
 
+      <div class="global" id="global" hidden aria-live="polite">
+        <span class="global-face" aria-hidden="true">💥</span>
+        <span class="global-num" id="globalCount">0</span>
+        <span class="global-label">pumpkins smashed worldwide</span>
+      </div>
+
       <ul class="crew">
         <li class="chip good"><span class="face">🎃</span><b>Pumpkin</b><small>Tap it, +1</small></li>
         <li class="chip gold"><span class="face">🎃</span><b>Golden</b><small>Tap it, +5</small></li>
@@ -514,7 +537,8 @@
 
   /* ---------- Analytics (GA4 via gtag; safe no-op if blocked) ---------- */
   const track = (name, params = {}) => { try { window.gtag && window.gtag('event', name, params); } catch {} };
-  let plays = 0, stats = null;
+  let plays = 0, stats = null, banked = 0;
+  const smashedSoFar = () => (stats ? stats.pumpkins + stats.gold : 0);
   const newStats = () => ({ pumpkins: 0, gold: 0, ghosts: 0, cats: 0, misses: 0 });
 
   /* Stripe Payment Link for the $5 coffee button. Paste the buy.stripe.com URL here to show the button. */
@@ -523,6 +547,43 @@
   if (COFFEE_URL) { coffeeEl.href = COFFEE_URL; coffeeEl.hidden = false; }
   coffeeEl.addEventListener('click', () => track('coffee_click', { value: 5, currency: 'AUD' }));
   document.querySelector('.credit a').addEventListener('click', () => track('credit_click', { link_url: 'https://malgordon.com' }));
+
+  /* ---------- Global smash counter (Pages Function /api/smashes, D1-backed) ---------- */
+  const Global = {
+    URL: '/api/smashes', PENDING_KEY: 'pumpkinsmash.pendingSmashes',
+    total: null, shown: 0, el: $('#globalCount'), box: $('#global'),
+    pending() { try { return +localStorage.getItem(this.PENDING_KEY) || 0; } catch { return 0; } },
+    setPending(n) { try { n > 0 ? localStorage.setItem(this.PENDING_KEY, n) : localStorage.removeItem(this.PENDING_KEY); } catch {} },
+    paint(total) {
+      if (!Number.isFinite(total)) return;
+      const from = this.shown, grew = this.total !== null && total > this.total;
+      this.total = total; this.box.hidden = false;
+      if (reduceMotion || from === 0 || total - from < 1) { this.shown = total; this.el.textContent = total.toLocaleString(); return; }
+      const t0 = performance.now(), dur = 900;
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / dur), v = Math.round(from + (total - from) * (1 - Math.pow(1 - k, 3)));
+        this.el.textContent = v.toLocaleString(); this.shown = v;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      if (grew) { this.box.classList.remove('bump'); void this.box.offsetWidth; this.box.classList.add('bump'); }
+    },
+    async load() {
+      try { const r = await fetch(this.URL, { cache: 'no-store' }); if (r.ok) this.paint((await r.json()).total); } catch {}
+    },
+    // Smashes are queued locally first so a dropped request or closed tab doesn't lose them.
+    busy: false,
+    report(n) { if (n > 0) this.setPending(this.pending() + n); this.flush(); },
+    async flush() {
+      const count = this.pending();
+      if (this.busy || count < 1) return;
+      this.busy = true;
+      try {
+        const r = await fetch(this.URL, { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ count }) });
+        if (r.ok) { this.setPending(this.pending() - count); this.paint((await r.json()).total); }
+      } catch {} finally { this.busy = false; }
+    }
+  };
 
   /* ---------- High score store (localStorage; swap for an API later) ---------- */
   const Scores = {
@@ -732,7 +793,7 @@
   }
 
   function startGame(e) {
-    plays++; stats = newStats();
+    plays++; stats = newStats(); banked = 0;
     track('level_start', { level_name: STAGES[0].name, play_number: plays, replay: e?.currentTarget?.id === 'againBtn' });
     getAC();
     if (ac && ac.state === 'suspended') ac.resume();
@@ -815,6 +876,7 @@
   let finalScore = 0;
   function endGame() {
     running = false; cancelAnimationFrame(raf); musicStop(); sfx.over(); finalScore = score;
+    Global.report(smashedSoFar() - banked); banked = smashedSoFar();
     active.forEach((a) => release(a.i)); active = [];
     const qualifies = Scores.qualifies(finalScore), isBest = finalScore > 0 && finalScore > Scores.best();
     const stage = STAGES[stageIdx].name;
@@ -846,7 +908,10 @@
   /* ---------- Navigation ---------- */
   $('#playBtn').addEventListener('click', startGame);
   $('#againBtn').addEventListener('click', startGame);
-  $('#menuBtn').addEventListener('click', () => { track('back_to_menu', { play_number: plays }); renderScores($('#startScores'), -1, 5); show('start'); });
+  $('#menuBtn').addEventListener('click', () => { track('back_to_menu', { play_number: plays }); renderScores($('#startScores'), -1, 5); show('start'); Global.load(); });
+
+  // tab closed or backgrounded mid-game: bank the smashes so far
+  window.addEventListener('pagehide', () => { if (running) { Global.report(smashedSoFar() - banked); banked = smashedSoFar(); } });
 
   // block pinch zoom and the long-press menu
   document.addEventListener('gesturestart', (e) => e.preventDefault());
@@ -854,6 +919,8 @@
 
   renderScores($('#startScores'), -1, 5);
   paintHud();
+  Global.pending() ? Global.flush() : Global.load();   // retry anything left over from last visit
+  setInterval(() => { if (!SCREENS.start.hidden && !document.hidden) Global.load(); }, 30000);
   loadMusic();   // fetch and decode the loop while the home screen is showing
 })();
 </script>
