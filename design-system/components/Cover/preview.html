@@ -1,0 +1,29 @@
+<!-- @dsCard height=288 -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+body { margin: 0; }
+.cover { position: relative; width: 960px; height: 288px; overflow: hidden; background: var(--night-900); }
+svg { position: absolute; inset: 0; }
+.pumpkin { fill: var(--pumpkin); } .plum { fill: var(--plum); } .gold { fill: var(--gold); }
+.horizon { fill: var(--sky-horizon); } .slime { fill: var(--slime); } .blood { fill: var(--blood); }
+.star { fill: var(--ember); }
+.text { position: absolute; left: 40px; bottom: 32px; max-width: 440px; }
+.name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 100px; line-height: .95; letter-spacing: .04em; color: var(--text); }
+.tag { margin: 12px 0 0; font-family: var(--font-ui); font-size: 14px; color: var(--muted); }
+</style></head><body>
+<div class="cover">
+<svg viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+<!-- blocks: pumpkin disc r150 (brand), plum pill 120x200 rx radius-pill, gold pill 180x64 rx radius-pill, sky-horizon slab 140x96 rx radius-board; slime r18 + blood r12 kept small (state colours)
+     arrangement: one oversized pumpkin disc bleeding off the top-right like the moon, satellites stacked down and left of it, all right of x=480
+     pattern: discs from radius-pill — README says chunky, rounded, glowing; a sparse star field of 3px ember dots at space-6 x 1.5 (24px) pitch
+     scales: pitch 24px (space-6 x 1.5), radii radius-pill (half short side), radius-board 28px -->
+<circle class="pumpkin" cx="836" cy="64" r="150"/>
+<rect class="plum" x="566" y="128" width="120" height="200" rx="60"/>
+<rect class="gold" x="706" y="198" width="180" height="64" rx="32"/>
+<rect class="horizon" x="900" y="226" width="140" height="96" rx="28"/>
+<circle class="slime" cx="728" cy="146" r="18"/>
+<circle class="blood" cx="530" cy="250" r="12"/>
+<circle class="star" cx="500" cy="28" r="3"/><circle class="star" cx="500" cy="76" r="3"/><circle class="star" cx="524" cy="52" r="3"/><circle class="star" cx="548" cy="28" r="3"/><circle class="star" cx="548" cy="76" r="3"/><circle class="star" cx="572" cy="52" r="3"/><circle class="star" cx="596" cy="28" r="3"/><circle class="star" cx="596" cy="76" r="3"/><circle class="star" cx="620" cy="52" r="3"/>
+</svg>
+<div class="text"><p class="name">Pumpkin<br>Smash</p><p class="tag">Smash the pumpkins before they hide.</p></div>
+</div>
+</body></html>

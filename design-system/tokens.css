@@ -1,0 +1,81 @@
+/* Pumpkin Smash — generated from tokens.json */
+@font-face { font-family: "Creepster"; src: url("fonts/Creepster-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Fredoka"; src: url("fonts/Fredoka-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Fredoka"; src: url("fonts/Fredoka-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Fredoka"; src: url("fonts/Fredoka-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Fredoka"; src: url("fonts/Fredoka-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+:root, [data-theme="night"] {
+  --night-900: #0b0616;
+  --night-800: #150a28;
+  --night-700: #241240;
+  --plum: #4b2a78;
+  --sky-mid: #34154f;
+  --sky-low: #170a2d;
+  --sky-horizon: #5a2152;
+  --hill: #1d0f33;
+  --silhouette: #0e0618;
+  --pumpkin: #ff7a1a;
+  --pumpkin-light: #ffb35c;
+  --pumpkin-dark: #e65f00;
+  --pumpkin-deep: #c4500a;
+  --pumpkin-shadow: #7a2b00;
+  --ink-on-pumpkin: #2a0e00;
+  --ember: #ffb347;
+  --gold: #ffd54a;
+  --slime: #8dff6a;
+  --blood: #ff4d6d;
+  --blood-soft: #ff9db0;
+  --blood-shadow: #5a0c22;
+  --coffee: #ffc24a;
+  --coffee-light: #ffe08a;
+  --coffee-deep: #a86a00;
+  --text: #f1eaff;
+  --muted: #b7a3d6;
+  --glass: rgba(22, 11, 40, 0.84);
+  --line: rgba(255, 255, 255, 0.1);
+  --stone: #66548a;
+  --stone-dark: #3d2f58;
+  --stem: #4c7a2a;
+  --vine: #78b448;
+  --shadow-button: 0 6px 0 #c4500a, 0 14px 30px rgba(255, 122, 26, 0.38);
+  --shadow-button-secondary: 0 5px 0 #120824;
+  --shadow-coffee: 0 4px 0 #a86a00;
+  --shadow-wordmark: 0 3px 0 #7a2b00, 0 6px 0 rgba(0, 0, 0, 0.35), 0 0 26px rgba(255, 122, 26, 0.55);
+  --shadow-glow-ember: 0 0 24px rgba(255, 122, 26, 0.6);
+}
+:root {
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-8: 40px;
+  --column: 520px;
+  --panel: 380px;
+  --button-width: 320px;
+  --tap-min: 48px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-board: 28px;
+  --radius-pill: 999px;
+  --font-display: Creepster, Chiller, fantasy;
+  --font-ui: Fredoka, ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.wordmark { font-family: var(--font-display); font-size: 60.8px; line-height: 1; font-weight: 400; letter-spacing: 0.04em; }
+.headline { font-family: var(--font-display); font-size: 54.4px; line-height: 1; font-weight: 400; letter-spacing: 0.05em; }
+.toast { font-family: var(--font-display); font-size: 38.4px; line-height: 1; font-weight: 400; letter-spacing: 0.06em; }
+.button { font-family: var(--font-display); font-size: 32px; line-height: 1; font-weight: 400; letter-spacing: 0.06em; }
+.pop { font-family: var(--font-display); font-size: 30.4px; line-height: 1; font-weight: 400; letter-spacing: 0.04em; }
+.section { font-family: var(--font-display); font-size: 21.6px; line-height: 1.2; font-weight: 400; letter-spacing: 0.05em; }
+.stage { font-family: var(--font-display); font-size: 19.2px; line-height: 1.2; font-weight: 400; letter-spacing: 0.08em; }
+.score-final { font-family: var(--font-ui); font-size: 67.2px; line-height: 0.95; font-weight: 700; }
+.score-hud { font-family: var(--font-ui); font-size: 27.2px; line-height: 1.05; font-weight: 700; }
+.button-secondary { font-family: var(--font-ui); font-size: 17.6px; line-height: 1.2; font-weight: 600; }
+.lead { font-family: var(--font-ui); font-size: 16.8px; line-height: 1.4; font-weight: 400; }
+.body { font-family: var(--font-ui); font-size: 16px; line-height: 1.4; font-weight: 500; }
+.small { font-family: var(--font-ui); font-size: 14px; line-height: 1.35; font-weight: 400; }
+.chip-label { font-family: var(--font-ui); font-size: 13.6px; line-height: 1.2; font-weight: 600; }
+.caption { font-family: var(--font-ui); font-size: 11.5px; line-height: 1.2; font-weight: 400; }

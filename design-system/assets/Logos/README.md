@@ -1,0 +1,1 @@
+The jack-o'-lantern is the only mark. Full colour, fixed inks (orange body, green stem, gold-lit face); use it on `night-900` or the sky gradient only. The wordmark is live Creepster text, not an image.

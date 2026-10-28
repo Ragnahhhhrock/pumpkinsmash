@@ -1,0 +1,81 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-28T13:50:00Z"
+  },
+  "title": "Pumpkin Smash",
+  "namespace": "PumpkinSmash",
+  "libraries": [],
+  "sections": {},
+  "groups": [
+    "Logos",
+    "Social",
+    "App icons"
+  ],
+  "assetGroups": {
+    "Logos": {
+      "name": "Logos",
+      "tile": "m",
+      "order": [
+        "jack.svg"
+      ],
+      "files": {
+        "jack.svg": {
+          "name": "jack.svg",
+          "blob": "55c4a0f866f44cf266d87a0bcae83774",
+          "size": 1541,
+          "type": "image/svg+xml"
+        }
+      }
+    },
+    "Social": {
+      "name": "Social",
+      "tile": "l",
+      "order": [
+        "og-image.png",
+        "twitter-card.png"
+      ],
+      "files": {
+        "og-image.png": {
+          "name": "og-image.png",
+          "blob": "5d7cc173aec91c775655db580b33b7fb",
+          "size": 589209,
+          "type": "image/png"
+        },
+        "twitter-card.png": {
+          "name": "twitter-card.png",
+          "blob": "930cc8ef8a36df6d743537b0dbce12ca",
+          "size": 563522,
+          "type": "image/png"
+        }
+      }
+    },
+    "App icons": {
+      "name": "App icons",
+      "tile": "s",
+      "order": [
+        "icon-512.png"
+      ],
+      "files": {
+        "icon-512.png": {
+          "name": "icon-512.png",
+          "blob": "b42f25965f4da18029d85c2150b52660",
+          "size": 250034,
+          "type": "image/png"
+        }
+      }
+    }
+  },
+  "blobs": {},
+  "docs": {
+    "sections": []
+  },
+  "lastChange": {
+    "by": "Malcolm Gordon",
+    "at": "2026-10-28T13:50:00Z",
+    "via": "GitHub \u00b7 Ragnahhhhrock/pumpkinsmash@bff108d",
+    "note": "Created from the game's index.html styles"
+  }
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" role="img" aria-label="Pumpkin Smash jack-o'-lantern">
+  <defs>
+    <radialGradient id="jackBody" cx="50%" cy="40%" r="65%">
+      <stop offset="0" stop-color="#ffa447"/><stop offset=".6" stop-color="#ff7a1a"/><stop offset="1" stop-color="#c4500a"/>
+    </radialGradient>
+    <radialGradient id="jackFire" cx="50%" cy="55%" r="60%">
+      <stop offset="0" stop-color="#fff2a8"/><stop offset=".55" stop-color="#ffd54a"/><stop offset="1" stop-color="#ff9a1f"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="58" cy="104" rx="50" ry="62" fill="#d9600f"/>
+  <ellipse cx="142" cy="104" rx="50" ry="62" fill="#d9600f"/>
+  <ellipse cx="100" cy="104" rx="62" ry="68" fill="url(#jackBody)"/>
+  <path d="M76 42 C60 78 60 130 76 166 M124 42 C140 78 140 130 124 166" stroke="#b64708" stroke-width="3" fill="none" opacity=".55"/>
+  <path d="M92 40 C92 24 98 14 110 8 C108 20 114 26 112 40 Z" fill="#4c7a2a"/>
+  <path d="M110 12 C126 4 134 14 128 24" stroke="#78b448" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <g fill="url(#jackFire)" stroke="#6a2400" stroke-width="3" stroke-linejoin="round">
+    <path d="M56 90 L80 66 L92 96 Z"/>
+    <path d="M144 90 L120 66 L108 96 Z"/>
+    <path d="M100 102 L92 118 L108 118 Z"/>
+    <path d="M52 124 L70 140 L82 126 L94 144 L100 128 L106 144 L118 126 L130 140 L148 124 C142 154 122 168 100 168 C78 168 58 154 52 124 Z"/>
+  </g>
+</svg>

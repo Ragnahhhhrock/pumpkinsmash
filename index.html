@@ -1,4 +1,8 @@
-<title>Pumpkin Smash</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-29NEGXCS5F"></script>
 <script>
@@ -7,7 +11,66 @@
   gtag('js', new Date());
   gtag('config', 'G-29NEGXCS5F');
 </script>
+<title>Pumpkin Smash — a free Halloween smash game</title>
+<meta name="description" content="Smash the pumpkins before they hide. A free, mobile-first Halloween tap game: grab golden pumpkins, catch ghosts for extra lives and leave the black cats alone.">
+<meta name="author" content="Mal Gordon">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://pumpkinsmash.me/">
+<meta name="theme-color" content="#0b0616">
+<meta name="color-scheme" content="dark">
 <meta name="claude:viewport-fit-sides" content="cover">
+
+<!-- Icons and install -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/brand/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pumpkin Smash">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Pumpkin Smash">
+<meta property="og:title" content="Pumpkin Smash — smash the pumpkins before they hide">
+<meta property="og:description" content="A free Halloween tap game for your phone. Golden pumpkins, ghostly extra lives, and black cats you really shouldn't smash.">
+<meta property="og:url" content="https://pumpkinsmash.me/">
+<meta property="og:locale" content="en_AU">
+<meta property="og:image" content="https://pumpkinsmash.me/assets/brand/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A glowing jack-o'-lantern beside the words Pumpkin Smash under a full moon">
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Pumpkin Smash — smash the pumpkins before they hide">
+<meta name="twitter:description" content="A free Halloween tap game for your phone. Golden pumpkins +5, ghosts +1 life, black cats: leave them alone.">
+<meta name="twitter:image" content="https://pumpkinsmash.me/assets/brand/twitter-card.png">
+<meta name="twitter:image:alt" content="A glowing jack-o'-lantern beside the words Pumpkin Smash under a full moon">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Pumpkin Smash",
+  "url": "https://pumpkinsmash.me/",
+  "image": "https://pumpkinsmash.me/assets/brand/og-image.png",
+  "description": "A free, mobile-first Halloween tap game. Smash the pumpkins before they hide.",
+  "genre": ["Arcade", "Casual"],
+  "gamePlatform": ["Web browser", "Mobile web"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "AUD" },
+  "author": { "@type": "Person", "name": "Mal Gordon", "url": "https://malgordon.com" }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@400;500;600;700&display=swap">
 <style>
   /* Layout: one painted night scene fixed behind three screens (home, game, game over).
@@ -284,6 +347,8 @@
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 </style>
+</head>
+<body>
 
 <!-- ============ Night scene (decorative) ============ -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -770,3 +835,5 @@
   loadMusic();   // fetch and decode the loop while the home screen is showing
 })();
 </script>
+</body>
+</html>
