@@ -512,10 +512,17 @@
     $('#foot').hidden = name === 'game';   // footer stays out of the way during play
   };
 
+  /* ---------- Analytics (GA4 via gtag; safe no-op if blocked) ---------- */
+  const track = (name, params = {}) => { try { window.gtag && window.gtag('event', name, params); } catch {} };
+  let plays = 0, stats = null;
+  const newStats = () => ({ pumpkins: 0, gold: 0, ghosts: 0, cats: 0, misses: 0 });
+
   /* Stripe Payment Link for the $5 coffee button. Paste the buy.stripe.com URL here to show the button. */
   const COFFEE_URL = 'https://buy.stripe.com/8x26ozbqp8O928M9qIaAw0b';
   const coffeeEl = $('#coffee');
   if (COFFEE_URL) { coffeeEl.href = COFFEE_URL; coffeeEl.hidden = false; }
+  coffeeEl.addEventListener('click', () => track('coffee_click', { value: 5, currency: 'AUD' }));
+  document.querySelector('.credit a').addEventListener('click', () => track('credit_click', { link_url: 'https://malgordon.com' }));
 
   /* ---------- High score store (localStorage; swap for an API later) ---------- */
   const Scores = {
@@ -614,6 +621,7 @@
     muted = !muted; paintMute();
     try { localStorage.setItem('pumpkinsmash.muted', muted ? '1' : '0'); } catch {}
     if (muted) musicStop(); else if (running) musicPlay();
+    track('sound_toggle', { muted, in_game: running });
   });
   paintMute();
 
@@ -719,10 +727,13 @@
     $('#best').textContent = Math.max(Scores.best(), score);
 
     let si = 0; STAGES.forEach((s, i) => { if (score >= s.at) si = i; });
-    if (si !== stageIdx) { stageIdx = si; $('#stage').textContent = STAGES[si].name; toast(STAGES[si].name + '!'); }
+    if (si !== stageIdx) { stageIdx = si; $('#stage').textContent = STAGES[si].name; toast(STAGES[si].name + '!');
+      if (running && si > 0) track('level_up', { level: si + 1, character: STAGES[si].name, score }); }
   }
 
-  function startGame() {
+  function startGame(e) {
+    plays++; stats = newStats();
+    track('level_start', { level_name: STAGES[0].name, play_number: plays, replay: e?.currentTarget?.id === 'againBtn' });
     getAC();
     if (ac && ac.state === 'suspended') ac.resume();
     holes.forEach((h) => { h.el.classList.remove('up', 'bad'); h.busy = false; });
@@ -756,14 +767,15 @@
     if (idx === -1) return;                       // tapping an empty grave is free
     const a = active.splice(idx, 1)[0], h = holes[i];
     if (a.type === 'pumpkin') {
-      score++; sfx.smash(); buzz(15); paintHud(); pop(i, 'pumpkin', '+1', 'var(--ember)', '💥');
+      score++; stats.pumpkins++; sfx.smash(); buzz(15); paintHud(); pop(i, 'pumpkin', '+1', 'var(--ember)', '💥');
     } else if (a.type === 'gold') {
-      score += 5; sfx.gold(); buzz([10, 30, 10]); paintHud(); pop(i, 'gold', '+5', 'var(--gold)', '💥');
+      score += 5; stats.gold++; sfx.gold(); buzz([10, 30, 10]); paintHud(); pop(i, 'gold', '+5', 'var(--gold)', '💥');
     } else if (a.type === 'ghost') {
       if (lives < START_LIVES) lives++;
+      stats.ghosts++;
       sfx.ghost(); buzz(20); paintHud(); pop(i, 'ghost', '+1 life', 'var(--slime)', '✨');
     } else {
-      sfx.cat(); h.el.classList.add('bad'); burst(h.el, 'cat'); floatText(h.el, '-1 life', 'var(--blood)'); release(i, 300); loseLife(true);
+      stats.cats++; sfx.cat(); h.el.classList.add('bad'); burst(h.el, 'cat'); floatText(h.el, '-1 life', 'var(--blood)'); release(i, 300); loseLife(true);
     }
   }
 
@@ -792,7 +804,7 @@
       const a = active[k];
       if (clock >= a.expires) {
         active.splice(k, 1); release(a.i);
-        if (a.type === 'pumpkin') { sfx.miss(); loseLife(false); if (!running) return; }
+        if (a.type === 'pumpkin') { stats.misses++; sfx.miss(); loseLife(false); if (!running) return; }
       }
     }
     if (clock >= nextSpawn) { spawn(); nextSpawn = clock + difficulty().gapMs * (0.7 + Math.random() * 0.6); }
@@ -805,6 +817,15 @@
     running = false; cancelAnimationFrame(raf); musicStop(); sfx.over(); finalScore = score;
     active.forEach((a) => release(a.i)); active = [];
     const qualifies = Scores.qualifies(finalScore), isBest = finalScore > 0 && finalScore > Scores.best();
+    const stage = STAGES[stageIdx].name;
+    track('level_end', { level_name: stage, success: false });
+    track('post_score', { score: finalScore, level: stageIdx + 1, character: stage });
+    track('game_over', {
+      score: finalScore, stage, duration_sec: Math.round(clock / 1000), play_number: plays,
+      pumpkins_smashed: stats.pumpkins, gold_smashed: stats.gold, ghosts_caught: stats.ghosts,
+      cats_hit: stats.cats, pumpkins_missed: stats.misses, new_best: isBest, made_leaderboard: qualifies
+    });
+    if (isBest) track('unlock_achievement', { achievement_id: 'new_high_score' });
     $('#finalScore').textContent = finalScore;
     $('#badge').hidden = !isBest;
     $('#nameForm').hidden = !qualifies;
@@ -819,12 +840,13 @@
     const rank = Scores.add(name, finalScore);
     $('#nameForm').hidden = true; $('#nameInput').blur();
     renderScores($('#overScores'), rank);
+    track('leaderboard_entry', { score: finalScore, rank: rank + 1 });
   });
 
   /* ---------- Navigation ---------- */
   $('#playBtn').addEventListener('click', startGame);
   $('#againBtn').addEventListener('click', startGame);
-  $('#menuBtn').addEventListener('click', () => { renderScores($('#startScores'), -1, 5); show('start'); });
+  $('#menuBtn').addEventListener('click', () => { track('back_to_menu', { play_number: plays }); renderScores($('#startScores'), -1, 5); show('start'); });
 
   // block pinch zoom and the long-press menu
   document.addEventListener('gesturestart', (e) => e.preventDefault());
