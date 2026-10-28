@@ -585,18 +585,56 @@
     }
   };
 
-  /* ---------- High score store (localStorage; swap for an API later) ---------- */
+  /* ---------- High score table (global via Pages Function /api/scores; localStorage fallback) ---------- */
   const Scores = {
-    KEY: 'pumpkinsmash.scores.v1', NAME_KEY: 'pumpkinsmash.name', MAX: 10,
-    all() { try { return JSON.parse(localStorage.getItem(this.KEY)) || []; } catch { return []; } },
-    best() { return this.all()[0]?.score || 0; },
+    KEY: 'pumpkinsmash.scores.v1', NAME_KEY: 'pumpkinsmash.name', BEST_KEY: 'pumpkinsmash.best',
+    PENDING_KEY: 'pumpkinsmash.pendingScores', URL: '/api/scores', MAX: 10,
+    remote: null,   // global top 10 once loaded; null = offline / not configured
+    read(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+    write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    local() { return this.read(this.KEY, []); },
+    all() { return this.remote || this.local(); },
+    best() { return Math.max(+this.read(this.BEST_KEY, 0) || 0, this.local()[0]?.score || 0); },
+    saveBest(score) { if (score > this.best()) this.write(this.BEST_KEY, score); },
     qualifies(score) { const a = this.all(); return score > 0 && (a.length < this.MAX || score > a[a.length - 1].score); },
-    add(name, score) {
-      const a = this.all(); const entry = { name, score, date: Date.now() };
-      a.push(entry); a.sort((x, y) => y.score - x.score || x.date - y.date);
-      const kept = a.slice(0, this.MAX);
-      try { localStorage.setItem(this.KEY, JSON.stringify(kept)); localStorage.setItem(this.NAME_KEY, name); } catch {}
-      return kept.indexOf(entry);
+    insert(list, entry) {
+      const a = list.concat(entry); a.sort((x, y) => y.score - x.score || x.date - y.date);
+      return a.slice(0, this.MAX);
+    },
+    // returns the entry's index in the shown table (or -1); onRemote(index) fires when the server answers
+    add(name, score, onRemote) {
+      const entry = { name, score, date: Date.now() };
+      this.write(this.KEY, this.insert(this.local(), entry)); this.saveBest(score);
+      try { localStorage.setItem(this.NAME_KEY, name); } catch {}
+      const shown = this.insert(this.all(), entry);
+      if (this.remote) this.remote = shown;
+      this.post({ name, score }).then((r) => {
+        if (!r) { this.queue({ name, score }); return; }
+        this.remote = r.scores;
+        const i = r.scores.findIndex((s) => s.date === r.entry.date && s.score === r.entry.score && s.name === r.entry.name);
+        onRemote && onRemote(i, r.rank);
+      });
+      return shown.indexOf(entry);
+    },
+    async post(e) {
+      try {
+        const r = await fetch(this.URL, { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify(e) });
+        return r.ok ? await r.json() : (r.status === 400 ? {} : null);   // 400 = rejected, don't retry
+      } catch { return null; }
+    },
+    queue(e) { const q = this.read(this.PENDING_KEY, []); q.push(e); this.write(this.PENDING_KEY, q.slice(-5)); },
+    async flush() {
+      const q = this.read(this.PENDING_KEY, []); if (!q.length) return;
+      try { localStorage.removeItem(this.PENDING_KEY); } catch {}
+      for (const e of q) { const r = await this.post(e); if (!r) { this.queue(e); break; } }
+    },
+    async load() {
+      await this.flush();
+      try {
+        const r = await fetch(this.URL + '?limit=' + this.MAX, { cache: 'no-store' });
+        if (r.ok) { this.remote = (await r.json()).scores; return true; }
+      } catch {}
+      return false;
     },
     lastName() { try { return localStorage.getItem(this.NAME_KEY) || ''; } catch { return ''; } }
   };
@@ -604,6 +642,7 @@
   const MEDALS = ['🥇', '🥈', '🥉'];
   function renderScores(ol, highlight = -1, limit = 10) {
     const list = Scores.all().slice(0, limit);
+    const h = ol.parentElement.querySelector('h3'); if (h) h.textContent = Scores.remote ? 'World high scores' : 'High scores';
     ol.innerHTML = '';
     if (!list.length) { ol.innerHTML = '<li class="empty">No scores yet. Play a round to claim first place.</li>'; return; }
     list.forEach((s, i) => {
@@ -614,6 +653,7 @@
       li.append(r, n, v); ol.append(li);
     });
   }
+  const refreshStartScores = () => Scores.load().then(() => { if (!SCREENS.start.hidden) renderScores($('#startScores'), -1, 5); });
 
   /* ---------- Sound (WebAudio effects, no assets) ---------- */
   let ac = null, muted = false;
@@ -800,6 +840,7 @@
   }
 
   function startGame(e) {
+    Scores.load();   // fresh world table by game over
     plays++; stats = newStats(); banked = 0;
     track('level_start', { level_name: STAGES[0].name, play_number: plays, replay: e?.currentTarget?.id === 'againBtn' });
     getAC();
@@ -886,6 +927,7 @@
     Global.report(smashedSoFar() - banked); banked = smashedSoFar();
     active.forEach((a) => release(a.i)); active = [];
     const qualifies = Scores.qualifies(finalScore), isBest = finalScore > 0 && finalScore > Scores.best();
+    Scores.saveBest(finalScore);
     const stage = STAGES[stageIdx].name;
     track('level_end', { level_name: stage, success: false });
     track('post_score', { score: finalScore, level: stageIdx + 1, character: stage });
@@ -906,7 +948,10 @@
   $('#nameForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = $('#nameInput').value.trim().slice(0, 10) || 'Anon';
-    const rank = Scores.add(name, finalScore);
+    const rank = Scores.add(name, finalScore, (i, worldRank) => {
+      renderScores($('#overScores'), i);
+      track('leaderboard_entry_saved', { score: finalScore, rank: worldRank });
+    });
     $('#nameForm').hidden = true; $('#nameInput').blur();
     renderScores($('#overScores'), rank);
     track('leaderboard_entry', { score: finalScore, rank: rank + 1 });
@@ -915,7 +960,7 @@
   /* ---------- Navigation ---------- */
   $('#playBtn').addEventListener('click', startGame);
   $('#againBtn').addEventListener('click', startGame);
-  $('#menuBtn').addEventListener('click', () => { track('back_to_menu', { play_number: plays }); renderScores($('#startScores'), -1, 5); show('start'); Global.load(); });
+  $('#menuBtn').addEventListener('click', () => { track('back_to_menu', { play_number: plays }); renderScores($('#startScores'), -1, 5); show('start'); Global.load(); refreshStartScores(); });
 
   // tab closed or backgrounded mid-game: bank the smashes so far
   window.addEventListener('pagehide', () => { if (running) { Global.report(smashedSoFar() - banked); banked = smashedSoFar(); } });
@@ -925,9 +970,10 @@
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 
   renderScores($('#startScores'), -1, 5);
+  refreshStartScores();
   paintHud();
   Global.pending() ? Global.flush() : Global.load();   // retry anything left over from last visit
-  setInterval(() => { if (!SCREENS.start.hidden && !document.hidden) Global.load(); }, 30000);
+  setInterval(() => { if (!SCREENS.start.hidden && !document.hidden) { Global.load(); refreshStartScores(); } }, 30000);
   loadMusic();   // fetch and decode the loop while the home screen is showing
 })();
 </script>

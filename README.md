@@ -2,7 +2,7 @@
 
 A mobile-first Halloween game. Smash pumpkins, dodge black cats, climb the high score table.
 
-Static site: `index.html` plus `music.mp3`. No build step. One Pages Function (`functions/api/smashes.js`) powers the global smash counter.
+Static site: `index.html` plus `music.mp3`. No build step. Pages Functions power the global smash counter (`functions/api/smashes.js`) and the world high score table (`functions/api/scores.js`).
 
 ## Deploy (Cloudflare Pages)
 
@@ -22,6 +22,15 @@ One-time setup in Cloudflare:
 3. Redeploy. The table is created automatically on first request.
 
 Until the binding exists the API returns 503 and the counter stays hidden.
+
+## World high score table
+
+`functions/api/scores.js` stores every submitted score in the same D1 database (`DB` binding, `scores` table created automatically).
+
+- `GET /api/scores?limit=10` → `{ scores: [{ name, score, date }] }`
+- `POST /api/scores { name, score }` → `{ rank, entry, scores }`. Names are cleaned and cut to 10 characters; scores must be 1–1,000,000; 6 submissions per IP per minute.
+
+The home and game-over tables show "World high scores" when the API answers, otherwise the device's local top 10. Failed submissions queue in localStorage and retry on the next visit. Personal best (HUD) stays on the device.
 
 ## Config
 
