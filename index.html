@@ -1000,16 +1000,17 @@
 
   $('#nameForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    if (scoreSubmitted) return;   // one submission per game (guards iOS double-tap / Enter+tap)
+    if (scoreSubmitted || !finalScore || $('#nameForm').hidden) return;   // one submission per game (guards iOS double-tap / Enter+tap)
     scoreSubmitted = true;
+    const scoreToSave = finalScore; finalScore = 0;   // spent: can't be saved again
     $('#nameForm button').disabled = true;
     const name = $('#nameInput').value.trim().slice(0, 10) || 'Anon';
-    const rank = Scores.add(name, finalScore, (i, worldRank) => {
+    const rank = Scores.add(name, scoreToSave, (i, worldRank) => {
       if (!SCREENS.start.hidden) renderScores($('#startScores'), i, 5);
-      track('leaderboard_entry_saved', { score: finalScore, rank: worldRank });
+      track('leaderboard_entry_saved', { score: scoreToSave, rank: worldRank });
     });
     $('#nameForm').hidden = true; $('#nameInput').blur();
-    track('leaderboard_entry', { score: finalScore, rank: rank + 1 });
+    track('leaderboard_entry', { score: scoreToSave, rank: rank + 1 });
     renderScores($('#startScores'), rank, 5); show('start');
   });
 
