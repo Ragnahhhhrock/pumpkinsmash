@@ -921,8 +921,9 @@
   }
 
   /* ---------- Game over ---------- */
-  let finalScore = 0;
+  let finalScore = 0, scoreSubmitted = false;
   function endGame() {
+    scoreSubmitted = false;
     running = false; cancelAnimationFrame(raf); musicStop(); sfx.over(); finalScore = score;
     Global.report(smashedSoFar() - banked); banked = smashedSoFar();
     active.forEach((a) => release(a.i)); active = [];
@@ -940,6 +941,7 @@
     $('#finalScore').textContent = finalScore;
     $('#badge').hidden = !isBest;
     $('#nameForm').hidden = !qualifies;
+    $('#nameForm button').disabled = false;
     $('#nameInput').value = Scores.lastName();
     renderScores($('#overScores'));
     setTimeout(() => { show('over'); }, 500);
@@ -947,6 +949,9 @@
 
   $('#nameForm').addEventListener('submit', (e) => {
     e.preventDefault();
+    if (scoreSubmitted) return;   // one submission per game (guards iOS double-tap / Enter+tap)
+    scoreSubmitted = true;
+    $('#nameForm button').disabled = true;
     const name = $('#nameInput').value.trim().slice(0, 10) || 'Anon';
     const rank = Scores.add(name, finalScore, (i, worldRank) => {
       renderScores($('#overScores'), i);
