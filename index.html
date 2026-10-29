@@ -331,7 +331,20 @@
   #hurt { position: fixed; inset: 0; z-index: 40; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, transparent 38%, rgba(255, 30, 70, .6) 100%); }
 
   /* ---------- Game over ---------- */
-  .ghost-big { font-size: clamp(3.2rem, 11dvh, 5rem); line-height: 1; animation: floaty 3.6s ease-in-out infinite; filter: drop-shadow(0 0 16px rgba(190, 160, 255, .6)); }
+  .laugh-wrap { position: relative; width: clamp(130px, 22dvh, 190px); aspect-ratio: 200 / 180; }
+  .laugh-pumpkin { width: 100%; height: 100%; overflow: visible; transform-origin: 50% 90%; filter: drop-shadow(0 0 18px rgba(255, 122, 26, .55)); animation: cackle .28s ease-in-out infinite; }
+  .jaw { transform-box: fill-box; transform-origin: 50% 0; animation: jawLaugh .28s ease-in-out infinite; }
+  .tear { animation: tearDrop 1s ease-in infinite; }
+  .tear.t2 { animation-delay: .35s; }
+  .ha { position: absolute; font-family: var(--font-display); font-size: 1.6rem; letter-spacing: .06em; color: var(--ember); text-shadow: 0 2px 0 rgba(0, 0, 0, .7), 0 0 10px rgba(255, 122, 26, .7); opacity: 0; animation: haPop 1.2s ease-out infinite; }
+  .ha.h1 { left: -34%; top: 6%; --r: -14deg; }
+  .ha.h2 { right: -36%; top: 16%; --r: 12deg; animation-delay: .4s; }
+  .ha.h3 { left: -22%; top: -14%; --r: -6deg; animation-delay: .8s; }
+  @keyframes cackle { 0%, 100% { transform: rotate(-5deg) scale(1, 1); } 50% { transform: rotate(5deg) scale(1.04, .96); } }
+  @keyframes jawLaugh { 0%, 100% { transform: scaleY(.82); } 50% { transform: scaleY(1.12); } }
+  @keyframes tearDrop { 0% { transform: translateY(-4px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(26px); opacity: 0; } }
+  @keyframes haPop { 0% { transform: translateY(8px) rotate(var(--r)) scale(.5); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-16px) rotate(var(--r)) scale(1.2); opacity: 0; } }
+  .taunt { margin: 0; font-family: var(--font-display); font-size: 1.35rem; letter-spacing: .05em; color: var(--ember); text-shadow: 0 0 14px rgba(255, 122, 26, .45); text-wrap: balance; }
   .over-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(2.4rem, 12vw, 3.4rem); letter-spacing: .05em; line-height: 1; color: var(--blood); text-shadow: 0 3px 0 #5a0c22, 0 0 24px rgba(255, 77, 109, .5); }
   .sub { margin: 0; color: var(--muted); }
   .final { font-size: 4.2rem; font-weight: 700; line-height: .95; color: var(--ember); text-shadow: 0 0 24px rgba(255, 122, 26, .6); font-variant-numeric: tabular-nums; }
@@ -498,8 +511,34 @@
   <!-- GAME OVER -->
   <section id="over" class="screen" hidden>
     <div class="stack">
-      <div class="ghost-big">👻</div>
+      <div class="laugh-wrap" aria-hidden="true">
+        <span class="ha h1">HA!</span><span class="ha h2">HA!</span><span class="ha h3">HA!</span>
+        <svg class="laugh-pumpkin" viewBox="0 0 200 180">
+          <path d="M100 30 C96 18 104 8 116 4" stroke="#3b7a2a" stroke-width="9" stroke-linecap="round" fill="none"/>
+          <ellipse cx="62" cy="102" rx="46" ry="62" fill="#e8650f"/>
+          <ellipse cx="138" cy="102" rx="46" ry="62" fill="#e8650f"/>
+          <ellipse cx="100" cy="102" rx="44" ry="66" fill="#ff7a1a"/>
+          <path d="M100 38 C92 70 92 134 100 166" stroke="#c4500a" stroke-width="3" fill="none" opacity=".6"/>
+          <path d="M66 40 C48 70 48 134 66 162" stroke="#c4500a" stroke-width="3" fill="none" opacity=".5"/>
+          <path d="M134 40 C152 70 152 134 134 162" stroke="#c4500a" stroke-width="3" fill="none" opacity=".5"/>
+          <!-- eyes, squeezed shut with laughter -->
+          <path d="M54 82 L82 94 L54 104" stroke="#1a0b00" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M146 82 L118 94 L146 104" stroke="#1a0b00" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M50 70 L84 78" stroke="#1a0b00" stroke-width="6" stroke-linecap="round"/>
+          <path d="M150 70 L116 78" stroke="#1a0b00" stroke-width="6" stroke-linecap="round"/>
+          <!-- tears -->
+          <path class="tear t1" d="M44 106 C38 118 42 126 48 124 C54 122 50 114 44 106 Z" fill="#7fd6ff"/>
+          <path class="tear t2" d="M156 106 C150 114 146 122 152 124 C158 126 162 118 156 106 Z" fill="#7fd6ff"/>
+          <!-- laughing mouth -->
+          <g class="jaw">
+            <path d="M52 122 C60 176 140 176 148 122 C124 134 76 134 52 122 Z" fill="#2a0600"/>
+            <path d="M72 158 C88 148 112 148 128 158 C118 170 82 170 72 158 Z" fill="#ff5c7a"/>
+            <path d="M60 126 L72 126 L66 140 Z M78 130 L90 130 L84 144 Z M110 130 L122 130 L116 144 Z M128 126 L140 126 L134 140 Z" fill="#ffe9a8"/>
+          </g>
+        </svg>
+      </div>
       <h2 class="over-title">Game over</h2>
+      <p class="taunt" id="taunt">Ha ha ha! Is that all you've got?</p>
       <p class="sub">Your score</p>
       <div class="final" id="finalScore">0</div>
       <p class="badge" id="badge" hidden>New high score!</p>
@@ -672,8 +711,18 @@
     ghost: () => tone(300, .35, 'sine', 900, .1),
     cat:   () => tone(300, .3, 'sawtooth', 90, .1),
     miss:  () => tone(220, .2, 'triangle', 140),
-    over:  () => { tone(330, .25, 'triangle', 220); setTimeout(() => tone(220, .5, 'triangle', 110), 220); }
+    over:  () => { tone(330, .25, 'triangle', 220); setTimeout(() => tone(220, .5, 'triangle', 110), 220); setTimeout(sfx.laugh, 700); },
+    // "ha ha ha ha": descending, wobbling bursts
+    laugh: () => { for (let i = 0; i < 5; i++) setTimeout(() => tone(420 - i * 36, .13, 'sawtooth', 300 - i * 30, .07), i * 170); }
   };
+  const TAUNTS = [
+    'Ha ha ha! Is that all you\'ve got?',
+    'Smashed? Nope. YOU got smashed!',
+    'Hee hee hee... too slow!',
+    'My seeds are shaking with laughter!',
+    'Pumpkin 1, You 0. Ha ha ha!',
+    'Was that your best? Hilarious!'
+  ];
   const buzz = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch {} };
 
   /* ---------- Background music: one 8-bar loop, gapless via WebAudio (HTML audio as fallback) ---------- */
@@ -939,6 +988,8 @@
     });
     if (isBest) track('unlock_achievement', { achievement_id: 'new_high_score' });
     $('#finalScore').textContent = finalScore;
+    $('#taunt').textContent = TAUNTS[Math.floor(Math.random() * TAUNTS.length)];
+    buzz([60, 40, 60, 40, 60]);
     $('#badge').hidden = !isBest;
     $('#nameForm').hidden = !qualifies;
     $('#nameForm button').disabled = false;
