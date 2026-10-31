@@ -910,6 +910,7 @@
     track('level_start', { level_name: STAGES[0].name, play_number: plays, replay: e?.currentTarget?.id === 'againBtn' });
     getAC();
     if (ac && ac.state === 'suspended') ac.resume();
+    shuffle = null;
     holes.forEach((h) => { h.el.classList.remove('up', 'bad'); h.busy = false; });
     score = 0; lives = START_LIVES; active = []; clock = 0; nextSpawn = 600; lastTs = 0; running = true; paused = false; stageIdx = 0;
     $('#pauseOverlay').hidden = true;
@@ -936,8 +937,49 @@
     release(i, 170);
   }
 
+  /* ---------- Cat Shuffle event: every grave is a black cat; the green-outlined one swaps places each second ---------- */
+  let shuffle = null;
+  const SHUFFLE_MS = 9000, SWAP_MS = 1000;
+  function paintCat(i, green) {
+    const h = holes[i];
+    h.critter.textContent = FACE.cat; h.critter.className = 'critter ' + (green ? 'rarecat' : 'cat');
+  }
+  function startShuffle() {
+    active.forEach((a) => release(a.i)); active = [];
+    const green = Math.floor(Math.random() * holes.length);
+    holes.forEach((h, i) => { h.busy = true; h.el.classList.remove('bad'); paintCat(i, i === green); h.el.classList.add('up'); });
+    shuffle = { green, swapAt: clock + SWAP_MS, endsAt: clock + SHUFFLE_MS };
+    toast('Cat shuffle!'); buzz([20, 40, 20]);
+    track('cat_shuffle_start', { score });
+  }
+  function endShuffle(caught) {
+    const g = shuffle ? shuffle.green : -1;
+    shuffle = null;
+    holes.forEach((h, i) => { if (!(caught && i === g)) release(i, 150); });
+  }
+  function shuffleTick() {
+    if (clock >= shuffle.endsAt) { endShuffle(false); return; }
+    if (clock >= shuffle.swapAt) {
+      const others = holes.map((_, i) => i).filter((i) => i !== shuffle.green);
+      const j = others[Math.floor(Math.random() * others.length)];
+      paintCat(shuffle.green, false); paintCat(j, true);
+      shuffle.green = j; shuffle.swapAt += SWAP_MS;
+    }
+  }
+  function shuffleWhack(i) {
+    const h = holes[i];
+    if (i === shuffle.green) {
+      score += 10; stats.rare++; sfx.gold(); buzz([10, 30, 10, 30, 10]); paintHud(); pop(i, 'rarecat', '+10', '#39ff14', '💥');
+      endShuffle(true);
+    } else {
+      stats.cats++; sfx.cat(); h.el.classList.add('bad'); burst(h.el, 'cat'); floatText(h.el, '-1 life', 'var(--blood)');
+      setTimeout(() => h.el.classList.remove('bad'), 300); loseLife(true);
+    }
+  }
+
   function whack(i) {
     if (!running || paused) return;
+    if (shuffle) return shuffleWhack(i);
     const idx = active.findIndex((a) => a.i === i);
     if (idx === -1) return;                       // tapping an empty grave is free
     const a = active.splice(idx, 1)[0], h = holes[i];
@@ -957,7 +999,7 @@
   }
 
   function pickType(d) {
-    if (Math.random() < 0.015) return 'rarecat';   // super rare: green-outlined cat, +10
+    if (score >= 5 && Math.random() < 0.025) return 'rarecat';   // super rare: triggers Cat Shuffle (green-outlined cat, +10)
     if (Math.random() < d.catChance) return 'cat';
     if (lives < START_LIVES && Math.random() < 0.07) return 'ghost';
     if (Math.random() < 0.09) return 'gold';
@@ -968,6 +1010,7 @@
     const free = holes.map((h, i) => (h.busy ? -1 : i)).filter((i) => i >= 0);
     if (!free.length) return;
     const i = free[Math.floor(Math.random() * free.length)], d = difficulty(), type = pickType(d), h = holes[i];
+    if (type === 'rarecat') { startShuffle(); return; }
     h.busy = true; h.critter.textContent = FACE[type]; h.critter.className = 'critter ' + type; h.el.classList.add('up');
     const life = type === 'rarecat' ? d.showMs * 0.7 : type === 'gold' ? d.showMs * 0.75 : type === 'ghost' ? d.showMs * 1.1 : d.showMs;
     active.push({ i, type, expires: clock + life });
@@ -978,6 +1021,7 @@
     const dt = Math.min(ts - (lastTs || ts), 100);  // capped so a backgrounded tab effectively pauses
     lastTs = ts; clock += dt;
 
+    if (shuffle) { shuffleTick(); if (shuffle) { raf = requestAnimationFrame(loop); return; } nextSpawn = clock + 700; }
     for (let k = active.length - 1; k >= 0; k--) {
       const a = active[k];
       if (clock >= a.expires) {
@@ -1007,6 +1051,7 @@
     running = false; paused = false; cancelAnimationFrame(raf); musicStop();
     Global.report(smashedSoFar() - banked); banked = smashedSoFar();
     active.forEach((a) => release(a.i)); active = [];
+    if (shuffle) endShuffle(false);
     $('#pauseOverlay').hidden = true;
     track('quit_game', { score, play_number: plays });
     renderScores($('#startScores'), -1, 5); show('start'); Global.load(); refreshStartScores();
@@ -1025,6 +1070,7 @@
     running = false; paused = false; $('#pauseOverlay').hidden = true; cancelAnimationFrame(raf); musicStop(); sfx.over(); finalScore = score;
     Global.report(smashedSoFar() - banked); banked = smashedSoFar();
     active.forEach((a) => release(a.i)); active = [];
+    if (shuffle) endShuffle(false);
     const qualifies = Scores.qualifies(finalScore), isBest = finalScore > 0 && finalScore > Scores.best();
     Scores.saveBest(finalScore);
     const stage = STAGES[stageIdx].name;
