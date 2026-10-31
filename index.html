@@ -238,6 +238,8 @@
   .chip.gold { border-color: rgba(255, 213, 74, .6); }
   .chip.gold .face, .critter.gold { filter: sepia(1) saturate(5) hue-rotate(-8deg) brightness(1.25) drop-shadow(0 0 6px rgba(255, 213, 74, .9)); }
   .chip.ghost { border-color: rgba(141, 255, 106, .5); }
+  .chip.rare { border-color: rgba(57, 255, 20, .6); }
+  .chip.rare .face { filter: drop-shadow(1px 0 0 #39ff14) drop-shadow(-1px 0 0 #39ff14) drop-shadow(0 1px 0 #39ff14) drop-shadow(0 -1px 0 #39ff14); }
   .chip.bad { border-color: rgba(255, 77, 109, .6); }
   .chip.bad small { color: #ff9db0; }
 
@@ -314,6 +316,7 @@
   .critter.pumpkin { filter: drop-shadow(0 0 1.5cqw rgba(255, 160, 60, .55)); }
   .critter.cat { filter: drop-shadow(0 0 1.8cqw rgba(255, 77, 109, .75)); }
   .critter.ghost { filter: drop-shadow(0 0 2cqw rgba(141, 255, 106, .85)); animation: wobble .8s ease-in-out infinite alternate; }
+  .critter.rarecat { filter: drop-shadow(.6cqw 0 0 #39ff14) drop-shadow(-.6cqw 0 0 #39ff14) drop-shadow(0 .6cqw 0 #39ff14) drop-shadow(0 -.6cqw 0 #39ff14) drop-shadow(0 0 2.2cqw rgba(57, 255, 20, .85)); animation: wobble .8s ease-in-out infinite alternate; }
   .critter.gold::after { content: "✨"; position: absolute; right: 14%; top: -4%; font-size: 8cqw; animation: twinkle .6s ease-in-out infinite alternate; }
   .critter.boom { filter: none; }
   @keyframes wobble { from { rotate: -8deg; } to { rotate: 8deg; } }
@@ -486,6 +489,7 @@
         <li class="chip good"><span class="face">🎃</span><b>Pumpkin</b><small>Tap it, +1</small></li>
         <li class="chip gold"><span class="face">🎃</span><b>Golden</b><small>Tap it, +5</small></li>
         <li class="chip ghost"><span class="face">👻</span><b>Ghost</b><small>Tap it, +1 life</small></li>
+        <li class="chip rare"><span class="face">🐈‍⬛</span><b>Green cat</b><small>Super rare, +10</small></li>
         <li class="chip bad"><span class="face">🐈‍⬛</span><b>Black cat</b><small>Leave it</small></li>
       </ul>
 
@@ -579,7 +583,7 @@
   const track = (name, params = {}) => { try { window.gtag && window.gtag('event', name, params); } catch {} };
   let plays = 0, stats = null, banked = 0;
   const smashedSoFar = () => (stats ? stats.pumpkins + stats.gold : 0);
-  const newStats = () => ({ pumpkins: 0, gold: 0, ghosts: 0, cats: 0, misses: 0 });
+  const newStats = () => ({ pumpkins: 0, gold: 0, rare: 0, ghosts: 0, cats: 0, misses: 0 });
 
   /* Stripe Payment Link for the $5 coffee button. Paste the buy.stripe.com URL here to show the button. */
   const COFFEE_URL = 'https://buy.stripe.com/8x26ozbqp8O928M9qIaAw0b';
@@ -793,6 +797,7 @@
     pumpkin: ['#ff7a1a', '#ffb347', '#c4500a', '#78b448'],
     gold: ['#ffd54a', '#fff2a8', '#ffb300', '#ffffff'],
     cat: ['#ff4d6d', '#7a1030', '#ff9db0'],
+    rarecat: ['#39ff14', '#b6ffa3', '#0b3d0b', '#ffffff'],
     ghost: ['#8dff6a', '#e6ffe0', '#b9a7ff']
   };
 
@@ -862,7 +867,7 @@
   const STAGES = [
     { at: 0, name: 'Dusk' }, { at: 25, name: 'Nightfall' }, { at: 60, name: 'Midnight' }, { at: 110, name: 'Witching hour' }
   ];
-  const FACE = { pumpkin: '🎃', gold: '🎃', cat: '🐈‍⬛', ghost: '👻' };
+  const FACE = { pumpkin: '🎃', gold: '🎃', cat: '🐈‍⬛', rarecat: '🐈‍⬛', ghost: '👻' };
   let running = false, score = 0, lives = START_LIVES, active = [], clock = 0, nextSpawn = 0, lastTs = 0, raf = 0, stageIdx = 0;
 
   const difficulty = () => ({
@@ -929,6 +934,8 @@
       score++; stats.pumpkins++; sfx.smash(); buzz(15); paintHud(); pop(i, 'pumpkin', '+1', 'var(--ember)', '💥');
     } else if (a.type === 'gold') {
       score += 5; stats.gold++; sfx.gold(); buzz([10, 30, 10]); paintHud(); pop(i, 'gold', '+5', 'var(--gold)', '💥');
+    } else if (a.type === 'rarecat') {
+      score += 10; stats.rare++; sfx.gold(); buzz([10, 30, 10, 30, 10]); paintHud(); pop(i, 'rarecat', '+10', '#39ff14', '💥');
     } else if (a.type === 'ghost') {
       if (lives < START_LIVES) lives++;
       stats.ghosts++;
@@ -939,6 +946,7 @@
   }
 
   function pickType(d) {
+    if (Math.random() < 0.015) return 'rarecat';   // super rare: green-outlined cat, +10
     if (Math.random() < d.catChance) return 'cat';
     if (lives < START_LIVES && Math.random() < 0.07) return 'ghost';
     if (Math.random() < 0.09) return 'gold';
@@ -950,7 +958,7 @@
     if (!free.length) return;
     const i = free[Math.floor(Math.random() * free.length)], d = difficulty(), type = pickType(d), h = holes[i];
     h.busy = true; h.critter.textContent = FACE[type]; h.critter.className = 'critter ' + type; h.el.classList.add('up');
-    const life = type === 'gold' ? d.showMs * 0.75 : type === 'ghost' ? d.showMs * 1.1 : d.showMs;
+    const life = type === 'rarecat' ? d.showMs * 0.7 : type === 'gold' ? d.showMs * 0.75 : type === 'ghost' ? d.showMs * 1.1 : d.showMs;
     active.push({ i, type, expires: clock + life });
   }
 
@@ -984,7 +992,7 @@
     track('post_score', { score: finalScore, level: stageIdx + 1, character: stage });
     track('game_over', {
       score: finalScore, stage, duration_sec: Math.round(clock / 1000), play_number: plays,
-      pumpkins_smashed: stats.pumpkins, gold_smashed: stats.gold, ghosts_caught: stats.ghosts,
+      pumpkins_smashed: stats.pumpkins, gold_smashed: stats.gold, rare_cats_caught: stats.rare, ghosts_caught: stats.ghosts,
       cats_hit: stats.cats, pumpkins_missed: stats.misses, new_best: isBest, made_leaderboard: qualifies
     });
     if (isBest) track('unlock_achievement', { achievement_id: 'new_high_score' });
