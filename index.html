@@ -569,7 +569,7 @@
   </section>
 
   <footer id="foot">
-    <a id="coffee" class="coffee" href="#" target="_blank" rel="noopener noreferrer" hidden>☕ Buy me a coffee ($5)</a>
+    <a id="coffee" class="coffee" href="#" target="_blank" rel="noopener noreferrer" hidden>☕ Please buy me a coffee</a>
     <p class="credit">Another <a href="https://malgordon.com" target="_blank" rel="noopener noreferrer">Mal Gordon</a> creation</p>
   </footer>
 </div>
@@ -595,7 +595,7 @@
   const newStats = () => ({ pumpkins: 0, gold: 0, rare: 0, ghosts: 0, cats: 0, misses: 0 });
 
   /* Stripe Payment Link for the $5 coffee button. Paste the buy.stripe.com URL here to show the button. */
-  const COFFEE_URL = 'https://buy.stripe.com/8x26ozbqp8O928M9qIaAw0b';
+  const COFFEE_URL = 'https://buy.stripe.com/fZu00b521d4p4gU0UcaAw05';
   const coffeeEl = $('#coffee');
   if (COFFEE_URL) { coffeeEl.href = COFFEE_URL; coffeeEl.hidden = false; }
   coffeeEl.addEventListener('click', () => track('coffee_click', { value: 5, currency: 'AUD' }));
